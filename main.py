@@ -122,6 +122,13 @@ class Application:
         contest = next((c for c in self.contests if f"{c.name} ({c.testid})" == selected_name), None)
         return contest.testid if contest else None
 
+    def enable_widgets(self, enable: bool):
+        state = "normal" if enable else "disabled"
+        for widgets in self.line1_frame.winfo_children():
+            if widgets != self.start_button:
+                for child in widgets.winfo_children():
+                    child.configure(state=state)
+
     def toggle_monitoring(self):
         if not self.is_monitoring:
             self.start_monitoring()
@@ -140,26 +147,17 @@ class Application:
             stations_count = 10
 
         self.is_monitoring = True
-        self.start_button.configure(
-            text="STOP MONITORING",
-            fg_color="#D32F2F",
-            hover_color="#B71C1C"
-        )
+        self.start_button.configure(text="STOP MONITORING", fg_color="#D32F2F", hover_color="#B71C1C")
+        self.enable_widgets(False)
         self.status_var.set(f"Monitoring contest {contest_id}...")
 
         # Start async monitoring task
-        asyncio.run_coroutine_threadsafe(
-            self.monitor_contest(contest_id, stations_count),
-            self.loop
-        )
+        asyncio.run_coroutine_threadsafe(self.monitor_contest(contest_id, stations_count), self.loop)
 
     def stop_monitoring(self):
         self.is_monitoring = False
-        self.start_button.configure(
-            text="START MONITORING",
-            fg_color="#2E7D32",
-            hover_color="#1B5E20"
-        )
+        self.start_button.configure(text="START MONITORING", fg_color="#2E7D32", hover_color="#1B5E20")
+        self.enable_widgets(True)
         self.status_var.set("Monitoring stopped")
 
         if self.current_monitor_task:
@@ -176,7 +174,9 @@ class Application:
             return None
 
     async def load_contests(self):
+        # alternative: fetch previous and current month: https://contest.run/api/contest/month/10
         data = await self.fetch_json("https://contest.run/api/contest/nearest")
+
         if data and isinstance(data, list):
             self.contests = [
                 Contest(
