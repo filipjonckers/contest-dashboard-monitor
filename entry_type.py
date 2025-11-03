@@ -1,7 +1,0 @@
-ENTRY_TYPES = [
-    "OVERALL",
-    "MULTI-OP ONE HIGH",
-    "SINGLE-OP ALL BANDS",
-    "CHECKLOG",
-    "OTHER",
-]
