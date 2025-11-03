@@ -1,0 +1,18 @@
+__pycache__/
+*.py[cod]
+*$py.class
+.Python
+build/
+dist/
+.pybuilder/
+target/
+.idea/
+.vscode/
+
+# Environments
+.env
+.venv/
+venv/
+
+# UV
+uv.lock
