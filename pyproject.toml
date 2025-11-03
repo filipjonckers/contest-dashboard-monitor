@@ -1,0 +1,9 @@
+[project]
+name = "contest-scoreboard-monitor"
+version = "1.0.0"
+description = "OT2A Contest Scoreboard Monitor"
+requires-python = ">=3.13"
+dependencies = [
+    "aiohttp>=3.13.2",
+    "customtkinter>=5.2.2",
+]
