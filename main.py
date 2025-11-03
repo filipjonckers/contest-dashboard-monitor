@@ -10,6 +10,7 @@ import customtkinter as ctk
 
 from category import Category
 from contest import Contest
+from inpersonate import inpersonate_browser_headers
 from log import setup_logging
 
 
@@ -171,7 +172,10 @@ class Application:
     async def fetch_json(self, url: str) -> Optional[Dict[str, Any]]:
         logging.debug("Fetching JSON data from URL: %s", url)
         try:
-            async with aiohttp.ClientSession() as session:
+            connector = aiohttp.TCPConnector(ssl=False)
+            headers = inpersonate_browser_headers()
+
+            async with aiohttp.ClientSession(connector=connector, headers=headers) as session:
                 async with session.get(url, timeout=30) as response:
                     response.raise_for_status()
                     return await response.json()
