@@ -10,6 +10,7 @@ import customtkinter as ctk
 
 from category import Category
 from contest import Contest
+from find_font import find_font
 from inpersonate import inpersonate_browser_headers
 from log import setup_logging
 from stations_list import StationsList
@@ -94,7 +95,7 @@ class Application:
             results_frame,
             width=80,
             height=20,
-            font=("Consolas", 12),
+            font=(find_font(), 16),
             bg="#2b2b2b",
             fg="#ffffff",
             insertbackground="#ffffff",
