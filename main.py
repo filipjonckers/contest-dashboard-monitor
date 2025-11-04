@@ -12,15 +12,18 @@ from category import Category
 from contest import Contest
 from inpersonate import inpersonate_browser_headers
 from log import setup_logging
+from stations_list import StationsList
 
 
 class Application:
     def __init__(self, root):
+        self.zone = 14  # Default WAZ zone filter
         self.entry_type = ctk.StringVar(value="OVERALL")
         self.contest_var = ctk.StringVar(value="")
         self.stations_var = ctk.StringVar(value="10")
         self.status_var = ctk.StringVar(value="Ready to start monitoring")
 
+        self.stations = StationsList()
         self.contests: List[Contest] = []
         self.categories: List[Category] = []
         self.current_monitor_task: Optional[asyncio.Task] = None
@@ -125,6 +128,16 @@ class Application:
         selected_name = self.contest_var.get()
         contest = next((c for c in self.contests if f"{c.name} ({c.testid})" == selected_name), None)
         return contest.testid if contest else None
+
+    def get_selected_category_id(self) -> Optional[int]:
+        selected_name = self.entry_type.get()
+        category = next((c for c in self.categories if f"{c.categoryname} ({c.catid})" == selected_name), None)
+        return category.catid if category else None
+
+    def get_selected_category(self) -> Optional[Category]:
+        selected_name = self.entry_type.get()
+        category = next((c for c in self.categories if f"{c.categoryname} ({c.catid})" == selected_name), None)
+        return category
 
     def enable_widgets(self, enable: bool):
         state = "normal" if enable else "disabled"
@@ -256,72 +269,39 @@ class Application:
                 data = await self.fetch_json(url=url)
                 logging.debug("Received data for %d entries.", len(data) if data else 0)
                 if data:
-                    self.display_contest_data(data, stations_count)
+                    self.process_contest_data(data, stations_count)
                     self.update_status(f"Last updated: {datetime.now().strftime('%H:%M:%S')}")
 
                 # Wait 1 minute before next update
                 await asyncio.sleep(60)
 
             except asyncio.CancelledError:
+                logging.error("async cancelled error")
                 break
             except Exception as e:
+                logging.error("Error during monitoring: %s", str(e))
                 self.update_status(f"Monitoring error: {str(e)}")
                 await asyncio.sleep(60)
 
-    def display_contest_data(self, data: Dict[str, Any], stations_count: int):
-        """Display contest data in the text widget with coloring"""
+    def process_contest_data(self, data: Dict[str, Any], stations_count: int):
+        category = self.get_selected_category()
+        logging.debug("Processing contest data for category: %s id: %d", category.categoryname, category.catid)
 
-        def update_display():
-            self.results_text.delete("1.0", "end")
+        for item in data:
+            # TODO: check if part of station monitoring list
+            pass
+            # filter by WAZ zone
+            if item.get('waz', "") != self.zone:
+                continue
+            # add to monitoring stations list
+            self.stations.update_from_json_item(item)
 
-            # Display basic contest info
-            self.results_text.insert("end", "CONTEST RESULTS\n", "header")
-            self.results_text.insert("end", f"Updated: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n\n", "normal")
+        self.root.after(0, self.update_stations_display)
 
-            # Display entry type and stations count
-            self.results_text.insert("end", f"Entry Type: {self.entry_type.get()}\n", "normal")
-            self.results_text.insert("end", f"Showing top {stations_count} stations\n\n", "normal")
-
-            # Display stations/scores data
-            if 'scores' in data and isinstance(data['scores'], list):
-                scores = data['scores'][:stations_count]
-
-                self.results_text.insert("end", f"Top {len(scores)} Stations:\n", "header")
-                self.results_text.insert("end", "-" * 60 + "\n", "normal")
-
-                for i, station in enumerate(scores, 1):
-                    callsign = station.get('callsign', 'N/A')
-                    score = station.get('score', 0)
-                    multipliers = station.get('multipliers', 0)
-                    qsos = station.get('qsos', 0)
-
-                    # Use different colors based on rank
-                    if i == 1:
-                        tag = "success"
-                    elif i <= 3:
-                        tag = "highlight"
-                    else:
-                        tag = "normal"
-
-                    self.results_text.insert("end", f"{i:2d}. {callsign:<12} ", tag)
-                    self.results_text.insert("end", f"Score: {score:>10,} ", tag)
-                    self.results_text.insert("end", f"Mult: {multipliers:>3} ", tag)
-                    self.results_text.insert("end", f"QSOs: {qsos:>4}\n", tag)
-
-            else:
-                self.results_text.insert("end", "No score data available\n", "warning")
-
-            # Add contest summary information if available
-            if 'contest' in data and data['contest']:
-                contest_info = data['contest']
-                self.results_text.insert("end", f"\nContest: {contest_info.get('name', 'N/A')}\n", "header")
-                self.results_text.insert("end", f"Start: {contest_info.get('startdate', 'N/A')} ", "normal")
-                self.results_text.insert("end", f"End: {contest_info.get('enddate', 'N/A')}\n", "normal")
-
-            self.results_text.see("1.0")  # Scroll to top
-
-        # Schedule the display update on the main thread
-        self.root.after(0, update_display)
+    def update_stations_display(self):
+        self.results_text.delete("1.0", "end")
+        for station in self.stations.get_stations():
+            self.results_text.insert("end", f"{station}\n")
 
     def update_status(self, message: str, level: str = "info"):
         def update():
