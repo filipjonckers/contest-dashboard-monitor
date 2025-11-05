@@ -177,6 +177,7 @@ class Application:
         self.status_var.set(f"Monitoring contest {contest_id}...")
 
         # Start async monitoring task
+        self.stations.clear()
         asyncio.run_coroutine_threadsafe(self.monitor_contest(contest_id, stations_count), self.loop)
 
     def stop_monitoring(self):
@@ -293,7 +294,7 @@ class Application:
                 logging.debug("Received data for %d entries.", len(data) if data else 0)
                 if data:
                     self.process_contest_data(data)
-                    self.update_status(f"Last updated: {datetime.now().strftime('%H:%M:%S')}")
+                    self.update_status(f"Last updated: {datetime.now().strftime('%H:%M:%S')} ({len(data)})")
 
                 # Wait 1 minute before next update
                 await asyncio.sleep(60)
@@ -310,7 +311,7 @@ class Application:
         category = self.get_selected_category()
         logging.debug("Processing: %s id=%d stations:%d", category.categoryname, category.catid, len(data))
 
-        zone: int = int(self.zone_var.get() or "14")
+        zone: int = int(self.zone_var.get() or "0")
 
         for item in data:
             # do we need to filter out this item?

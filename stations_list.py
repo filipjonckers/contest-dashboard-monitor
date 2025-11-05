@@ -19,3 +19,6 @@ class StationsList:
 
     def get_stations(self) -> list[Station]:
         return list(self.stations_list.values())
+
+    def clear(self):
+        self.stations_list = {}
