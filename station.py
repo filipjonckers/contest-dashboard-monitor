@@ -28,4 +28,3 @@ class Station:
     def data_history(self) -> List[StationData]:
         """Get all StationData instances as a list (oldest to newest)"""
         return self._data_history.copy()
-

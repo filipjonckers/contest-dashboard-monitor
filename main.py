@@ -1,5 +1,4 @@
 import asyncio
-import json
 import logging
 import threading
 from datetime import datetime
@@ -15,7 +14,6 @@ from find_font import find_font
 from inpersonate import inpersonate_browser_headers
 from log import setup_logging
 from stations_list import StationsList
-from test_contests import TEST_CONTESTS
 
 
 class Application:
@@ -24,6 +22,7 @@ class Application:
         self.entry_type = ctk.StringVar(value="OVERALL")
         self.contest_var = ctk.StringVar(value="")
         self.stations_var = ctk.StringVar(value="10")
+        self.zone_var = ctk.StringVar(value="14")
         self.status_var = ctk.StringVar(value="Ready to start monitoring")
 
         self.stations = StationsList()
@@ -73,6 +72,11 @@ class Application:
         stations_entry = ctk.CTkEntry(frame1, textvariable=self.stations_var, width=30, validate="key")
         stations_entry.pack(side="left", padx=5)
         stations_entry.configure(validatecommand=(self.root.register(Application.validate_number), '%P'))
+
+        ctk.CTkLabel(frame1, text="Zone:").pack(side="left", padx=(5, 0))
+        zone_entry = ctk.CTkEntry(frame1, textvariable=self.zone_var, width=30, validate="key")
+        zone_entry.pack(side="left", padx=5)
+        zone_entry.configure(validatecommand=(self.root.register(Application.validate_number), '%P'))
 
         self.start_button = ctk.CTkButton(self.line1_frame, text="START MONITORING", command=self.toggle_monitoring,
                                           fg_color="#2E7D32", hover_color="#1B5E20")
@@ -205,7 +209,7 @@ class Application:
         logging.debug("Received data for %d contests.", len(data) if data else 0)
 
         # parse string into json object
-        data = json.loads(TEST_CONTESTS)
+        # data = json.loads(TEST_CONTESTS)
 
         if data and isinstance(data, list):
             self.contests = [
@@ -241,14 +245,27 @@ class Application:
                 Category(
                     catid=item.get('catid'),
                     testid=item.get('testid'),
-                    ctoper=item.get('ctoper', 0),
-                    cttrans=item.get('cttrans', 0),
-                    ctpwr=item.get('ctpwr', 0),
+                    ctoper=item.get('ctoper', -1),
+                    ctwac=item.get('ctwac', -1),
+                    cttrans=item.get('cttrans', -1),
+                    ctband=item.get('ctband', -1),
+                    ctpwr=item.get('ctpwr', -1),
+                    ctmode=item.get('ctmode', -1),
+                    ctassis=item.get('ctassis', -1),
+                    ctstatn=item.get('ctstatn', -1),
+                    cttime=item.get('cttime', -1),
+                    ctoverl=item.get('ctoverl', -1),
                     categoryname=item.get('categoryname', 'Unknown'),
                     wherescores=item.get('wherescores', ''),
-                    ct_oper=item.get('ct_oper', ''),
-                    ct_trans=item.get('ct_trans', ''),
-                    ct_power=item.get('ct_power', '')
+                    ct_oper=item.get('ct-oper', ''),
+                    ct_band=item.get('ct-band', ''),
+                    ct_mode=item.get('ct-mode', ''),
+                    ct_assis=item.get('ct-assis', ''),
+                    ct_trans=item.get('ct-trans', ''),
+                    ct_power=item.get('ct-power', ''),
+                    ct_statn=item.get('ct-statn', ''),
+                    ct_overl=item.get('ct-overl', ''),
+                    ct_time=item.get('ct-time', ''),
                 )
                 for item in data
                 if item.get('catid')
@@ -275,7 +292,7 @@ class Application:
                 data = await self.fetch_json(url=url)
                 logging.debug("Received data for %d entries.", len(data) if data else 0)
                 if data:
-                    self.process_contest_data(data, stations_count)
+                    self.process_contest_data(data)
                     self.update_status(f"Last updated: {datetime.now().strftime('%H:%M:%S')}")
 
                 # Wait 1 minute before next update
@@ -284,25 +301,52 @@ class Application:
             except asyncio.CancelledError:
                 logging.error("async cancelled error")
                 break
-            except Exception as e:
-                logging.error("Error during monitoring: %s", str(e))
-                self.update_status(f"Monitoring error: {str(e)}")
-                await asyncio.sleep(60)
+            # except Exception as e:
+            #     logging.error("Error during monitoring: %s", str(e))
+            #     self.update_status(f"Monitoring error: {str(e)}")
+            #     await asyncio.sleep(60)
 
-    def process_contest_data(self, data: Dict[str, Any], stations_count: int):
+    def process_contest_data(self, data: Dict[str, Any]):
         category = self.get_selected_category()
-        logging.debug("Processing contest data for category: %s id: %d", category.categoryname, category.catid)
+        logging.debug("Processing: %s id=%d stations:%d", category.categoryname, category.catid, len(data))
+
+        zone: int = int(self.zone_var.get() or "14")
 
         for item in data:
-            # TODO: check if part of station monitoring list
-            pass
-            # filter by WAZ zone
-            if item.get('waz', "") != self.zone:
+            # do we need to filter out this item?
+            if not self.part_of_category(item, category, zone):
                 continue
             # add to monitoring stations list
             self.stations.update_from_json_item(item)
 
         self.root.after(0, self.update_stations_display)
+
+    @staticmethod
+    def part_of_category(item: Dict[str, Any], category: Category, zone: int) -> bool:
+        if not category or not item:
+            return False
+
+        if zone > 0 and zone != item.get('waz', 0):
+            return False
+        if 0 <= category.ctoper != item.get('ctoper', -1):
+            return False
+        if 0 <= category.ctpwr != item.get('ctpwr', -1):
+            return False
+        if 0 <= category.ctassis != item.get('ctassis', -1):
+            return False
+        if 0 <= category.cttrans != item.get('cttrans', -1):
+            return False
+        if 0 <= category.ctband != item.get('ctband', -1):
+            return False
+        if 0 <= category.ctmode != item.get('ctmode', -1):
+            return False
+        if 0 <= category.ctstatn != item.get('ctstatn', -1):
+            return False
+        if 0 <= category.cttime != item.get('cttime', -1):
+            return False
+        if 0 <= category.ctoverl != item.get('ctoverl', -1):
+            return False
+        return True
 
     def update_stations_display(self):
         self.results_text.delete("1.0", "end")
