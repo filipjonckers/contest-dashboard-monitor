@@ -1,4 +1,5 @@
 import asyncio
+import json
 import logging
 import threading
 from datetime import datetime
@@ -14,6 +15,7 @@ from find_font import find_font
 from inpersonate import inpersonate_browser_headers
 from log import setup_logging
 from stations_list import StationsList
+from test_contests import TEST_CONTESTS
 
 
 class Application:
@@ -201,6 +203,9 @@ class Application:
         # alternative: fetch previous and current month: https://contest.run/api/contest/month/10
         data = await self.fetch_json("https://contest.run/api/contest/nearest")
         logging.debug("Received data for %d contests.", len(data) if data else 0)
+
+        # parse string into json object
+        data = json.loads(TEST_CONTESTS)
 
         if data and isinstance(data, list):
             self.contests = [
