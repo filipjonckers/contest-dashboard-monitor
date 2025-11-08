@@ -387,6 +387,7 @@ def main():
     setup_logging(logging.DEBUG)
 
     root = ctk.CTk()
+    root.focus_force()
     app = Application(root)
 
     # Handle window closing
