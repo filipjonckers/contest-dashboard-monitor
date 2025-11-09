@@ -19,6 +19,7 @@ from stations_list import StationsList
 class Application:
     def __init__(self, root):
         self.zone = 14  # Default WAZ zone filter
+        self.update_interval = 60  # seconds
         self.entry_type = ctk.StringVar(value="OVERALL")
         self.contest_var = ctk.StringVar(value="")
         self.stations_var = ctk.StringVar(value="10")
@@ -33,7 +34,7 @@ class Application:
 
         self.root = root
         self.root.title("Contest Scoreboard Monitor")
-        self.root.geometry("900x700")
+        self.root.geometry("1100x700")
 
         ctk.set_appearance_mode("Light")
         ctk.set_default_color_theme("blue")
@@ -78,7 +79,7 @@ class Application:
         zone_entry.pack(side="left", padx=5)
         zone_entry.configure(validatecommand=(self.root.register(Application.validate_number), '%P'))
 
-        self.start_button = ctk.CTkButton(self.line1_frame, text="START MONITORING", command=self.toggle_monitoring,
+        self.start_button = ctk.CTkButton(self.line1_frame, text="START", command=self.toggle_monitoring,
                                           fg_color="#2E7D32", hover_color="#1B5E20")
         self.start_button.pack(side="right", padx=20, pady=0)
 
@@ -110,12 +111,9 @@ class Application:
         )
         self.results_text.pack(fill="both", expand=True, padx=2, pady=0)
         # Configure text tags for coloring
-        self.results_text.tag_configure("header", foreground="#4FC3F7", font=("Consolas", 12, "bold"))
-        self.results_text.tag_configure("success", foreground="#4CAF50")
-        self.results_text.tag_configure("warning", foreground="#FF9800")
-        self.results_text.tag_configure("error", foreground="#f44336")
-        self.results_text.tag_configure("highlight", foreground="#FFD54F")
-        self.results_text.tag_configure("normal", foreground="#FFFFFF")
+        self.results_text.tag_configure("header", foreground="#4FC3F7")
+        self.results_text.tag_configure("X", background="#FF7518")
+        self.results_text.tag_configure("N", background=self.results_text.cget("background"))
 
     @staticmethod
     def validate_number(value):
@@ -165,20 +163,15 @@ class Application:
             self.status_var.set("Error: Please select a contest first")
             return
 
-        try:
-            stations_count = int(self.stations_var.get() or "10")
-        except ValueError:
-            stations_count = 10
-
-        logging.debug("Starting monitoring contest ID %d top %d stations", contest_id, stations_count)
+        logging.debug("Starting monitoring contest ID %d top %s stations", contest_id, self.stations_var.get() or "10")
         self.is_monitoring = True
-        self.start_button.configure(text="STOP MONITORING", fg_color="#D32F2F", hover_color="#B71C1C")
+        self.start_button.configure(text="STOP", fg_color="#D32F2F", hover_color="#B71C1C")
         self.enable_widgets(False)
         self.status_var.set(f"Monitoring contest {contest_id}...")
 
         # Start async monitoring task
         self.stations.clear()
-        asyncio.run_coroutine_threadsafe(self.monitor_contest(contest_id, stations_count), self.loop)
+        asyncio.run_coroutine_threadsafe(self.monitor_contest(contest_id), self.loop)
 
     def stop_monitoring(self):
         logging.debug("Stopping monitoring")
@@ -208,9 +201,6 @@ class Application:
         # alternative: fetch previous and current month: https://contest.run/api/contest/month/10
         data = await self.fetch_json("https://contest.run/api/contest/nearest")
         logging.debug("Received data for %d contests.", len(data) if data else 0)
-
-        # parse string into json object
-        # data = json.loads(TEST_CONTESTS)
 
         if data and isinstance(data, list):
             self.contests = [
@@ -281,11 +271,11 @@ class Application:
                 self.root.after(0, lambda: self.entry_select.set(category_names[0]))
                 self.update_status(f"Loaded {len(category_names)} categories")
 
-    async def monitor_contest(self, contest_id: int, stations_count: int):
+    async def monitor_contest(self, contest_id: int):
         """Monitor contest data periodically"""
         self.current_monitor_task = asyncio.current_task()
 
-        url = f"https://contest.run/api/mobilescore/{contest_id}"
+        url = f"https://contest.run/api/displayscore/{contest_id}"
         logging.debug("Starting monitoring for contest ID %d at URL: %s", contest_id, url)
 
         while self.is_monitoring:
@@ -296,22 +286,18 @@ class Application:
                     self.process_contest_data(data)
                     self.update_status(f"Last updated: {datetime.now().strftime('%H:%M:%S')} ({len(data)})")
 
-                # Wait 1 minute before next update
-                await asyncio.sleep(60)
+                await asyncio.sleep(self.update_interval)
 
             except asyncio.CancelledError:
                 logging.error("async cancelled error")
                 break
-            # except Exception as e:
-            #     logging.error("Error during monitoring: %s", str(e))
-            #     self.update_status(f"Monitoring error: {str(e)}")
-            #     await asyncio.sleep(60)
 
     def process_contest_data(self, data: Dict[str, Any]):
         category = self.get_selected_category()
         logging.debug("Processing: %s id=%d stations:%d", category.categoryname, category.catid, len(data))
 
         zone: int = int(self.zone_var.get() or "0")
+        counter: int = 0
 
         for item in data:
             # do we need to filter out this item?
@@ -319,6 +305,10 @@ class Application:
                 continue
             # add to monitoring stations list
             self.stations.update_from_json_item(item)
+            # do we have enough stations to monitor?
+            counter += 1
+            if counter >= int(self.stations_var.get() or "10"):
+                break
 
         self.root.after(0, self.update_stations_display)
 
@@ -327,32 +317,39 @@ class Application:
         if not category or not item:
             return False
 
-        if zone > 0 and zone != item.get('waz', 0):
-            return False
-        if 0 <= category.ctoper != item.get('ctoper', -1):
-            return False
-        if 0 <= category.ctpwr != item.get('ctpwr', -1):
-            return False
-        if 0 <= category.ctassis != item.get('ctassis', -1):
-            return False
-        if 0 <= category.cttrans != item.get('cttrans', -1):
-            return False
-        if 0 <= category.ctband != item.get('ctband', -1):
-            return False
-        if 0 <= category.ctmode != item.get('ctmode', -1):
-            return False
-        if 0 <= category.ctstatn != item.get('ctstatn', -1):
-            return False
-        if 0 <= category.cttime != item.get('cttime', -1):
-            return False
-        if 0 <= category.ctoverl != item.get('ctoverl', -1):
+        try:
+            if zone > 0 and zone != item.get('waz', 0):
+                return False
+            if 0 <= category.ctoper != item.get('ctoper', -1):
+                return False
+            if 0 <= category.ctpwr != item.get('ctpwr', -1):
+                return False
+            if 0 <= category.ctassis != item.get('ctassis', -1):
+                return False
+            if 0 <= category.cttrans != item.get('cttrans', -1):
+                return False
+            if 0 <= category.ctband != item.get('ctband', -1):
+                return False
+            if 0 <= category.ctmode != item.get('ctmode', -1):
+                return False
+            if 0 <= category.ctstatn != item.get('ctstatn', -1):
+                return False
+            if 0 <= category.cttime != item.get('cttime', -1):
+                return False
+            if 0 <= category.ctoverl != item.get('ctoverl', -1):
+                return False
+        except Exception as e:
+            logging.error("Error checking category filters: %s", str(e))
             return False
         return True
 
     def update_stations_display(self):
         self.results_text.delete("1.0", "end")
+        self.results_text.insert("1.0",
+                                 f"{'station':<10} {'score':>10} {'QSOs':>6}    160  80  40  20  15  10 | {'multi':>5}     160  80  40  20  15  10\n",
+                                 "header")
         for station in self.stations.get_stations():
-            self.results_text.insert("end", f"{station}\n")
+            station.add_to_scrolledtext(self.results_text)
 
     def update_status(self, message: str, level: str = "info"):
         def update():

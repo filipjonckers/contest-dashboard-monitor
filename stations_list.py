@@ -1,3 +1,5 @@
+import logging
+
 from station import Station
 
 
@@ -10,12 +12,15 @@ class StationsList:
 
     # update from a single JSON data object dict
     def update_from_json_item(self, json_item: dict):
-        callsign = json_item.get('sign', 'ERROR')
-        station = self.get(callsign)
-        if not station:
-            station = Station(callsign=callsign)
-            self.stations_list[callsign] = station
-        station.update_from_json_item(json_item)
+        try:
+            callsign = json_item.get('sign', 'ERROR')
+            station = self.get(callsign)
+            if not station:
+                station = Station(callsign=callsign)
+                self.stations_list[callsign] = station
+            station.update_from_json_item(json_item)
+        except Exception as e:
+            logging.error("Error updating station from JSON item: %s", e)
 
     def get_stations(self) -> list[Station]:
         return list(self.stations_list.values())
