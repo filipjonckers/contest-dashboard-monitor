@@ -43,6 +43,7 @@ class Application:
 
         self.main_frame = None
         self.line1_frame = None
+        self.line2_frame = None
         self.results_text = None
         self.start_button = None
         self.contest_dropdown = None
@@ -85,17 +86,17 @@ class Application:
                                           fg_color="#2E7D32", hover_color="#1B5E20")
         self.start_button.pack(side="right", padx=20, pady=0)
 
-        line2_frame = ctk.CTkFrame(self.main_frame, fg_color="transparent")
-        line2_frame.pack(fill="x", pady=(0, 3))
+        self.line2_frame = ctk.CTkFrame(self.main_frame, fg_color="transparent")
+        self.line2_frame.pack(fill="x", pady=(0, 3))
 
-        ctk.CTkLabel(line2_frame, text="Include:").pack(side="left", padx=(5, 0))
-        include_entry = ctk.CTkEntry(line2_frame, textvariable=self.include_var, width=500)
+        ctk.CTkLabel(self.line2_frame, text="Include:").pack(side="left", padx=(5, 0))
+        include_entry = ctk.CTkEntry(self.line2_frame, textvariable=self.include_var, width=500)
         include_entry.pack(side="left", padx=5)
         # include_entry must be in uppercase
         include_entry.bind("<KeyRelease>", lambda event: self.include_var.set(self.include_var.get().upper()))
 
         status_label = ctk.CTkLabel(
-            line2_frame,
+            self.line2_frame,
             textvariable=self.status_var,
             text_color="#4CAF50",
             bg_color="transparent"
@@ -158,6 +159,12 @@ class Application:
             if widgets != self.start_button:
                 for child in widgets.winfo_children():
                     child.configure(state=state)
+        for widgets in self.line2_frame.winfo_children():
+            # if widget type is label, skip
+            if isinstance(widgets, ctk.CTkLabel):
+                continue
+            for child in widgets.winfo_children():
+                child.configure(state=state)
 
     def toggle_monitoring(self):
         if not self.is_monitoring:
