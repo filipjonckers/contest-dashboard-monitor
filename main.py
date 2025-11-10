@@ -24,8 +24,10 @@ class Application:
         self.contest_var = ctk.StringVar(value="")
         self.stations_var = ctk.StringVar(value="10")
         self.zone_var = ctk.StringVar(value="14")
+        self.include_var = ctk.StringVar(value="")
         self.status_var = ctk.StringVar(value="Ready to start monitoring")
 
+        self.include_callsigns: List[str] = []
         self.stations = StationsList()
         self.contests: List[Contest] = []
         self.categories: List[Category] = []
@@ -33,7 +35,7 @@ class Application:
         self.is_monitoring = False
 
         self.root = root
-        self.root.title("Contest Scoreboard Monitor")
+        self.root.title("ON4FF Contest Scoreboard Monitor")
         self.root.geometry("1100x700")
 
         ctk.set_appearance_mode("Light")
@@ -83,11 +85,17 @@ class Application:
                                           fg_color="#2E7D32", hover_color="#1B5E20")
         self.start_button.pack(side="right", padx=20, pady=0)
 
-        status_frame = ctk.CTkFrame(self.main_frame, fg_color="transparent")
-        status_frame.pack(fill="x", pady=(0, 3))
+        line2_frame = ctk.CTkFrame(self.main_frame, fg_color="transparent")
+        line2_frame.pack(fill="x", pady=(0, 3))
+
+        ctk.CTkLabel(line2_frame, text="Include:").pack(side="left", padx=(5, 0))
+        include_entry = ctk.CTkEntry(line2_frame, textvariable=self.include_var, width=500)
+        include_entry.pack(side="left", padx=5)
+        # include_entry must be in uppercase
+        include_entry.bind("<KeyRelease>", lambda event: self.include_var.set(self.include_var.get().upper()))
 
         status_label = ctk.CTkLabel(
-            status_frame,
+            line2_frame,
             textvariable=self.status_var,
             text_color="#4CAF50",
             bg_color="transparent"
@@ -112,7 +120,7 @@ class Application:
         self.results_text.pack(fill="both", expand=True, padx=2, pady=0)
         # Configure text tags for coloring
         self.results_text.tag_configure("header", foreground="#4FC3F7")
-        self.results_text.tag_configure("X", background="#FF7518")
+        self.results_text.tag_configure("X", background="#FF4F00")  # aerospace safe orange
         self.results_text.tag_configure("N", background=self.results_text.cget("background"))
 
     @staticmethod
@@ -278,6 +286,10 @@ class Application:
         url = f"https://contest.run/api/displayscore/{contest_id}"
         logging.debug("Starting monitoring for contest ID %d at URL: %s", contest_id, url)
 
+        # self.include_var to list of callsigns
+        self.include_callsigns = [cs.strip().upper() for cs in self.include_var.get().split(" ") if cs.strip()]
+        logging.debug("Include callsigns: %s", self.include_callsigns)
+
         while self.is_monitoring:
             try:
                 data = await self.fetch_json(url=url)
@@ -300,6 +312,11 @@ class Application:
         counter: int = 0
 
         for item in data:
+            # check is sign is in include list
+            if self.include_callsigns and item.get('sign', '').upper() in self.include_callsigns:
+                self.stations.update_from_json_item(item)
+                continue
+
             # do we need to filter out this item?
             if not self.part_of_category(item, category, zone):
                 continue
@@ -346,7 +363,7 @@ class Application:
     def update_stations_display(self):
         self.results_text.delete("1.0", "end")
         self.results_text.insert("1.0",
-                                 f"{'station':<10} {'score':>10} {'QSOs':>6}    160  80  40  20  15  10 | {'multi':>5}     160  80  40  20  15  10\n",
+                                 f"{'station':<10} {'score':>10} {'QSOs':>6}      160  80  40  20  15  10 | {'multi':>5}       160  80  40  20  15  10\n",
                                  "header")
         for station in self.stations.get_stations():
             station.add_to_scrolledtext(self.results_text)

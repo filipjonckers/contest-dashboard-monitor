@@ -76,21 +76,21 @@ class Station:
         while len(self._delta_history) > self._max_history:
             self._delta_history.pop(0)
 
-        if self.delta.score > 0:
+        # if self.delta.score > 0:
             # go over every element in data_history for debug, also show number of element
-            print("---------------------------")
-            for nr, item in enumerate(self._data_history):
-                print(f"DATA_HISTORY[{nr}]: {item}")
-            print("----")
-            for nr, item in enumerate(self._delta_history):
-                print(f"DELTA_HISTORY[{nr}]: {item}")
-            print("----")
-            print(f"CURRENT :{current}")
-            print("----")
-            print(f"PREVIOUS:{previous}")
-            print("----")
-            print(f"DELTA:{self.delta}")
-            print("---------------------------")
+            # print("---------------------------")
+            # for nr, item in enumerate(self._data_history):
+            #     print(f"DATA_HISTORY[{nr}]: {item}")
+            # print("----")
+            # for nr, item in enumerate(self._delta_history):
+            #     print(f"DELTA_HISTORY[{nr}]: {item}")
+            # print("----")
+            # print(f"CURRENT :{current}")
+            # print("----")
+            # print(f"PREVIOUS:{previous}")
+            # print("----")
+            # print(f"DELTA:{self.delta}")
+            # print("---------------------------")
 
     def update_range_total(self) -> None:
         # reset range_total
@@ -128,7 +128,7 @@ class Station:
         text_widget.insert(tk.END, f"{self.callsign:<10} ", "N")
         text_widget.insert(tk.END, f"{current.score:>10,} ", "N")
         text_widget.insert(tk.END, f"{current.qtotal:>6,} ", "N")
-        text_widget.insert(tk.END, f"{data.qtotal:<+3d}" if data.qtotal > 0 else f"{'':3}", "N")
+        text_widget.insert(tk.END, f"{data.qtotal:<+4d} " if data.qtotal > 0 else f"{'':4} ", "N")
 
         text_widget.insert(tk.END, f"{data.q160 if data.q160 > 0 else '0':>3}", "X" if data.q160 > 0 else "N")
         text_widget.insert(tk.END, f" {data.q80 if data.q80 > 0 else '0':>3}", "X" if data.q80 > 0 else "N")
@@ -138,7 +138,7 @@ class Station:
         text_widget.insert(tk.END, f" {data.q10 if data.q10 > 0 else '0':>3}", "X" if data.q10 > 0 else "N")
 
         text_widget.insert(tk.END, f" | {current.mtotal:>5,} ", "N")
-        text_widget.insert(tk.END, f"{data.mtotal:<+3d}" if data.mtotal > 0 else f"{'':3}", "N")
+        text_widget.insert(tk.END, f"{data.mtotal:<+4d} " if data.mtotal > 0 else f"{'':4} ", "N")
 
         text_widget.insert(tk.END, f" {data.m160 if data.m160 > 0 else '0':>3}", "X" if data.m160 > 0 else "N")
         text_widget.insert(tk.END, f" {data.m80 if data.m80 > 0 else '0':>3}", "X" if data.m80 > 0 else "N")
