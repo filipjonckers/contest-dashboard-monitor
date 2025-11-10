@@ -12,7 +12,6 @@ from category import Category
 from contest import Contest
 from find_font import find_font
 from inpersonate import inpersonate_browser_headers
-from log import setup_logging
 from stations_list import StationsList
 
 
@@ -408,20 +407,3 @@ class Application:
             self.current_monitor_task.cancel()
         self.loop.call_soon_threadsafe(self.loop.stop)
         self.root.destroy()
-
-
-def main():
-    setup_logging(logging.DEBUG)
-
-    root = ctk.CTk()
-    root.focus_force()
-    app = Application(root)
-
-    # Handle window closing
-    root.protocol("WM_DELETE_WINDOW", app.on_closing)
-
-    root.mainloop()
-
-
-if __name__ == "__main__":
-    main()
