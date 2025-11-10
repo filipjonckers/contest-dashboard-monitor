@@ -43,7 +43,7 @@ jobs:
         uses: Nuitka/Nuitka-Action@main
         with:
           nuitka-version: main
-          script-name: __main__.py
+          script-name: src/contest_scoreboard_monitor/__main__.py
           enable-plugins: tk-inter
           mode: standalone
 
