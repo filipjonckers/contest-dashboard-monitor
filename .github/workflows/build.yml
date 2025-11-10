@@ -45,7 +45,6 @@ jobs:
           script-name: src/contest_scoreboard_monitor
           enable-plugins: tk-inter
           disable-console: false
-          output-filename: contest_scoreboard_monitor.exe
           output-dir: contest_scoreboard_monitor
           windows-icon-from-ico: icon.png
           mode: standalone
