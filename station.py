@@ -76,22 +76,6 @@ class Station:
         while len(self._delta_history) > self._max_history:
             self._delta_history.pop(0)
 
-        # if self.delta.score > 0:
-        # go over every element in data_history for debug, also show number of element
-        # print("---------------------------")
-        # for nr, item in enumerate(self._data_history):
-        #     print(f"DATA_HISTORY[{nr}]: {item}")
-        # print("----")
-        # for nr, item in enumerate(self._delta_history):
-        #     print(f"DELTA_HISTORY[{nr}]: {item}")
-        # print("----")
-        # print(f"CURRENT :{current}")
-        # print("----")
-        # print(f"PREVIOUS:{previous}")
-        # print("----")
-        # print(f"DELTA:{self.delta}")
-        # print("---------------------------")
-
     def update_range_total(self) -> None:
         # reset range_total
         self.range_total: StationData = StationData()
