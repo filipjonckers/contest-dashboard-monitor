@@ -66,11 +66,11 @@ class Application:
         frame1.pack(side="left", fill="x")
         ctk.CTkLabel(frame1, text="Contest:").pack(side="left", padx=0)
         self.contest_dropdown = ctk.CTkComboBox(frame1, variable=self.contest_var,
-                                                state="readonly", width=240, command=self.on_contest_selected)
+                                                state="readonly", width=280, command=self.on_contest_selected)
         self.contest_dropdown.pack(side="left", padx=5)
 
         ctk.CTkLabel(frame1, text="Type:").pack(side="left", padx=(5, 0))
-        self.entry_select = ctk.CTkComboBox(frame1, variable=self.entry_type, state="readonly", width=200)
+        self.entry_select = ctk.CTkComboBox(frame1, variable=self.entry_type, state="readonly", width=240)
         self.entry_select.pack(side="left", padx=5)
 
         ctk.CTkLabel(frame1, text="Stations:").pack(side="left", padx=(5, 0))
