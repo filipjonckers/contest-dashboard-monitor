@@ -44,6 +44,7 @@ jobs:
         with:
           nuitka-version: main
           script-name: main.py
+          follow-imports: True
           enable-plugins: tk-inter
           mode: standalone
 
