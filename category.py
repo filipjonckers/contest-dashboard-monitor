@@ -3,18 +3,18 @@ from dataclasses import dataclass
 
 @dataclass
 class Category:
-    catid: int
-    testid: int
-    ctwac: int
-    ctoper: int
-    cttrans: int
-    ctband: int
-    ctpwr: int
-    ctmode: int
-    ctassis: int
-    ctstatn: int
-    cttime: int
-    ctoverl: int
+    catid: int = -1
+    testid: int = -1
+    ctwac: int = -1
+    ctoper: int = -1
+    cttrans: int = -1
+    ctband: int = -1
+    ctpwr: int = -1
+    ctmode: int = -1
+    ctassis: int = -1
+    ctstatn: int = -1
+    cttime: int = -1
+    ctoverl: int = -1
     categoryname: str = None
     wherescores: str = None
     ct_oper: str = None

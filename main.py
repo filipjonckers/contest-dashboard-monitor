@@ -20,7 +20,7 @@ class Application:
     def __init__(self, root):
         self.zone = 14  # Default WAZ zone filter
         self.update_interval = 60  # seconds
-        self.HEADER_TEXT = f" {'station':<10} {'score':>10} {'QSOs':>6}      160  80  40  20  15  10 |  {'multi':>5}      160  80  40  20  15  10\n"
+        self.HEADER_TEXT = f" {'station':<10} {'score':>10} {'QSOs':>6}      160  80  40  20  15  10 | {'multi':>5}      160  80  40  20  15  10\n"
         self.entry_type = ctk.StringVar(value="OVERALL")
         self.contest_var = ctk.StringVar(value="")
         self.stations_var = ctk.StringVar(value="10")
@@ -74,7 +74,7 @@ class Application:
         self.entry_select.pack(side="left", padx=5)
 
         ctk.CTkLabel(frame1, text="Stations:").pack(side="left", padx=(5, 0))
-        stations_entry = ctk.CTkEntry(frame1, textvariable=self.stations_var, width=30, validate="key")
+        stations_entry = ctk.CTkEntry(frame1, textvariable=self.stations_var, width=50, validate="key")
         stations_entry.pack(side="left", padx=5)
         stations_entry.configure(validatecommand=(self.root.register(Application.validate_number), '%P'))
 
@@ -252,8 +252,13 @@ class Application:
         data = await self.fetch_json(f"https://contest.run/api/category/contest/{contest_id}")
         logging.debug("Received data for %d categories.", len(data) if data else 0)
 
+        overall_category: Category = Category(
+            catid=0,
+            ct_oper="OVERALL",
+            categoryname="OVERALL")
+
         if data and isinstance(data, list):
-            self.categories = [
+            self.categories = [overall_category] + [
                 Category(
                     catid=item.get('catid'),
                     testid=item.get('testid'),
