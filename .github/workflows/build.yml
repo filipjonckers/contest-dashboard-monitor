@@ -44,6 +44,7 @@ jobs:
           nuitka-version: main
           script-name: src/contest_scoreboard_monitor
           enable-plugins: tk-inter
+          output-dir: contest_scoreboard_monitor
           mode: standalone
 
       - name: Upload Artifacts
