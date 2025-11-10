@@ -122,7 +122,7 @@ class Application:
         self.results_text.pack(fill="both", expand=True, padx=2, pady=0)
         # Configure text tags for coloring
         self.results_text.tag_configure("header", foreground="#4fc3f7")
-        self.results_text.tag_configure("callsign", foreground="#ffce00")
+        self.results_text.tag_configure("mark", foreground="#ffce00")
         self.results_text.tag_configure("N", background=self.results_text.cget("background"))
         self.results_text.tag_configure("T", background="#ff4f00")  # aerospace safe orange
         self.results_text.tag_configure("Y", background="#ffce00")
@@ -327,7 +327,7 @@ class Application:
         for item in data:
             # check is sign is in include list
             if self.include_callsigns and item.get('sign', '').upper() in self.include_callsigns:
-                self.stations.update_from_json_item(item)
+                self.stations.update_from_json_item(item, mark=True)
                 continue
 
             # do we need to filter out this item?
@@ -379,11 +379,8 @@ class Application:
         for station in self.stations.get_stations():
             station.add_to_scrolledtext(self.results_text)
 
-    def update_status(self, message: str, level: str = "info"):
-        def update():
-            self.status_var.set(message)
-
-        self.root.after(0, update)
+    def update_status(self, message: str):
+        self.root.after(0, lambda: self.status_var.set(message))
 
     def start_async_tasks(self):
         """Start the async event loop in a separate thread"""

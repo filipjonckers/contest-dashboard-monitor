@@ -11,14 +11,15 @@ class StationsList:
         return self.stations_list.get(callsign)
 
     # update from a single JSON data object dict
-    def update_from_json_item(self, json_item: dict):
+    def update_from_json_item(self, json_item: dict, mark: bool = False):
         try:
             callsign = json_item.get('sign', 'ERROR')
-            station = self.get(callsign)
+            station: Station = self.get(callsign)
             if not station:
-                station = Station(callsign=callsign)
+                station: Station = Station(callsign=callsign)
                 self.stations_list[callsign] = station
             station.update_from_json_item(json_item)
+            station.mark = mark
         except Exception as e:
             logging.error("Error updating station from JSON item: %s", e)
 

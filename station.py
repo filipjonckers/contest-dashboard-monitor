@@ -11,6 +11,7 @@ class Station:
         self.range_total: Optional[StationData] = None
         self._data_history: List[StationData] = []
         self._delta_history: List[StationData] = []
+        self.mark: bool = False
         self._max_history: int = 10
         self.range: int = 10
 
@@ -124,7 +125,7 @@ class Station:
         if not current or not data:
             return
 
-        text.insert(END, f" {self.callsign:<10} ")
+        text.insert(END, f" {self.callsign:<10}", "mark" if self.mark else "N", "")
         text.insert(END, f"{current.score:>10,} ")
         text.insert(END, f"{current.qtotal:>6,} ")
         text.insert(END, f"{data.qtotal:<+4d} " if data.qtotal > 0 else f"{'':4} ")
