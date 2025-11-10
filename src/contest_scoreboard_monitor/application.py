@@ -8,11 +8,11 @@ from typing import Dict, List, Optional, Any
 import aiohttp
 import customtkinter as ctk
 
-from category import Category
-from contest import Contest
-from find_font import find_font
-from inpersonate import inpersonate_browser_headers
-from stations_list import StationsList
+from src.contest_scoreboard_monitor.category import Category
+from src.contest_scoreboard_monitor.contest import Contest
+from src.contest_scoreboard_monitor.find_font import find_font
+from src.contest_scoreboard_monitor.inpersonate import inpersonate_browser_headers
+from src.contest_scoreboard_monitor.stations_list import StationsList
 
 
 class Application:

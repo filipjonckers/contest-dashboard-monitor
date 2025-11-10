@@ -2,8 +2,8 @@ import logging
 
 import customtkinter as ctk
 
-from application import Application
-from log import setup_logging
+from src.contest_scoreboard_monitor.application import Application
+from src.contest_scoreboard_monitor.log import setup_logging
 
 
 def main():
