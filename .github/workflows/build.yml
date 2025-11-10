@@ -45,6 +45,7 @@ jobs:
           script-name: src/contest_scoreboard_monitor
           enable-plugins: tk-inter
           output-dir: contest_scoreboard_monitor
+          windows-icon-from-ico: icon.png
           mode: standalone
 
       - name: Upload Artifacts
@@ -56,4 +57,5 @@ jobs:
             build/*.bin
             build/*.app/**/*
             build/*.dist/**/*
+            build/*/**/*
           include-hidden-files: true
