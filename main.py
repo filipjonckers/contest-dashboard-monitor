@@ -20,6 +20,7 @@ class Application:
     def __init__(self, root):
         self.zone = 14  # Default WAZ zone filter
         self.update_interval = 60  # seconds
+        self.HEADER_TEXT = f" {'station':<10} {'score':>10} {'QSOs':>6}      160  80  40  20  15  10 |  {'multi':>5}      160  80  40  20  15  10\n"
         self.entry_type = ctk.StringVar(value="OVERALL")
         self.contest_var = ctk.StringVar(value="")
         self.stations_var = ctk.StringVar(value="10")
@@ -120,9 +121,14 @@ class Application:
         )
         self.results_text.pack(fill="both", expand=True, padx=2, pady=0)
         # Configure text tags for coloring
-        self.results_text.tag_configure("header", foreground="#4FC3F7")
-        self.results_text.tag_configure("X", background="#FF4F00")  # aerospace safe orange
+        self.results_text.tag_configure("header", foreground="#4fc3f7")
+        self.results_text.tag_configure("callsign", foreground="#ffce00")
         self.results_text.tag_configure("N", background=self.results_text.cget("background"))
+        self.results_text.tag_configure("T", background="#ff4f00")  # aerospace safe orange
+        self.results_text.tag_configure("Y", background="#ffce00")
+        self.results_text.tag_configure("O", background="#ff8d00")
+        self.results_text.tag_configure("R", background="#c70000")
+        self.results_text.tag_configure("G", background="#008000")
 
     @staticmethod
     def validate_number(value):
@@ -369,9 +375,7 @@ class Application:
 
     def update_stations_display(self):
         self.results_text.delete("1.0", "end")
-        self.results_text.insert("1.0",
-                                 f"{'station':<10} {'score':>10} {'QSOs':>6}      160  80  40  20  15  10 | {'multi':>5}       160  80  40  20  15  10\n",
-                                 "header")
+        self.results_text.insert("1.0", self.HEADER_TEXT, "header")
         for station in self.stations.get_stations():
             station.add_to_scrolledtext(self.results_text)
 

@@ -1,5 +1,4 @@
-import tkinter as tk
-from tkinter import scrolledtext
+from tkinter import scrolledtext, END
 from typing import List, Optional
 
 from station_data import StationData
@@ -77,20 +76,20 @@ class Station:
             self._delta_history.pop(0)
 
         # if self.delta.score > 0:
-            # go over every element in data_history for debug, also show number of element
-            # print("---------------------------")
-            # for nr, item in enumerate(self._data_history):
-            #     print(f"DATA_HISTORY[{nr}]: {item}")
-            # print("----")
-            # for nr, item in enumerate(self._delta_history):
-            #     print(f"DELTA_HISTORY[{nr}]: {item}")
-            # print("----")
-            # print(f"CURRENT :{current}")
-            # print("----")
-            # print(f"PREVIOUS:{previous}")
-            # print("----")
-            # print(f"DELTA:{self.delta}")
-            # print("---------------------------")
+        # go over every element in data_history for debug, also show number of element
+        # print("---------------------------")
+        # for nr, item in enumerate(self._data_history):
+        #     print(f"DATA_HISTORY[{nr}]: {item}")
+        # print("----")
+        # for nr, item in enumerate(self._delta_history):
+        #     print(f"DELTA_HISTORY[{nr}]: {item}")
+        # print("----")
+        # print(f"CURRENT :{current}")
+        # print("----")
+        # print(f"PREVIOUS:{previous}")
+        # print("----")
+        # print(f"DELTA:{self.delta}")
+        # print("---------------------------")
 
     def update_range_total(self) -> None:
         # reset range_total
@@ -119,64 +118,33 @@ class Station:
             self.range_total.m80 += delta.m80
             self.range_total.m160 += delta.m160
 
-    def add_to_scrolledtext(self, text_widget: scrolledtext.ScrolledText) -> None:
+    def add_to_scrolledtext(self, text: scrolledtext.ScrolledText) -> None:
         current: StationData = self.current()
         data: StationData = self.range_total
         if not current or not data:
             return
 
-        text_widget.insert(tk.END, f"{self.callsign:<10} ", "N")
-        text_widget.insert(tk.END, f"{current.score:>10,} ", "N")
-        text_widget.insert(tk.END, f"{current.qtotal:>6,} ", "N")
-        text_widget.insert(tk.END, f"{data.qtotal:<+4d} " if data.qtotal > 0 else f"{'':4} ", "N")
+        text.insert(END, f" {self.callsign:<10} ")
+        text.insert(END, f"{current.score:>10,} ")
+        text.insert(END, f"{current.qtotal:>6,} ")
+        text.insert(END, f"{data.qtotal:<+4d} " if data.qtotal > 0 else f"{'':4} ")
 
-        text_widget.insert(tk.END, f"{data.q160 if data.q160 > 0 else '0':>3}", "X" if data.q160 > 0 else "N")
-        text_widget.insert(tk.END, f" {data.q80 if data.q80 > 0 else '0':>3}", "X" if data.q80 > 0 else "N")
-        text_widget.insert(tk.END, f" {data.q40 if data.q40 > 0 else '0':>3}", "X" if data.q40 > 0 else "N")
-        text_widget.insert(tk.END, f" {data.q20 if data.q20 > 0 else '0':>3}", "X" if data.q20 > 0 else "N")
-        text_widget.insert(tk.END, f" {data.q15 if data.q15 > 0 else '0':>3}", "X" if data.q15 > 0 else "N")
-        text_widget.insert(tk.END, f" {data.q10 if data.q10 > 0 else '0':>3}", "X" if data.q10 > 0 else "N")
+        text.insert(END, f"{data.q160 if data.q160 > 0 else '0':>3}", "T" if data.q160 > 0 else "N", " ")
+        text.insert(END, f"{data.q80 if data.q80 > 0 else '0':>3}", "T" if data.q80 > 0 else "N", " ")
+        text.insert(END, f"{data.q40 if data.q40 > 0 else '0':>3}", "T" if data.q40 > 0 else "N", " ")
+        text.insert(END, f"{data.q20 if data.q20 > 0 else '0':>3}", "T" if data.q20 > 0 else "N", " ")
+        text.insert(END, f"{data.q15 if data.q15 > 0 else '0':>3}", "T" if data.q15 > 0 else "N", " ")
+        text.insert(END, f"{data.q10 if data.q10 > 0 else '0':>3}", "T" if data.q10 > 0 else "N", " ")
 
-        text_widget.insert(tk.END, f" | {current.mtotal:>5,} ", "N")
-        text_widget.insert(tk.END, f"{data.mtotal:<+4d} " if data.mtotal > 0 else f"{'':4} ", "N")
+        text.insert(END, f" | {current.mtotal:>5,} ")
+        text.insert(END, f"{data.mtotal:<+4d} " if data.mtotal > 0 else f"{'':4} ")
 
-        text_widget.insert(tk.END, f" {data.m160 if data.m160 > 0 else '0':>3}", "X" if data.m160 > 0 else "N")
-        text_widget.insert(tk.END, f" {data.m80 if data.m80 > 0 else '0':>3}", "X" if data.m80 > 0 else "N")
-        text_widget.insert(tk.END, f" {data.m40 if data.m40 > 0 else '0':>3}", "X" if data.m40 > 0 else "N")
-        text_widget.insert(tk.END, f" {data.m20 if data.m20 > 0 else '0':>3}", "X" if data.m20 > 0 else "N")
-        text_widget.insert(tk.END, f" {data.m15 if data.m15 > 0 else '0':>3}", "X" if data.m15 > 0 else "N")
-        text_widget.insert(tk.END, f" {data.m10 if data.m10 > 0 else '0':>3}", "X" if data.m10 > 0 else "N")
+        text.insert(END, f"{data.m160 if data.m160 > 0 else '0':>3}", "T" if data.m160 > 0 else "N", " ")
+        text.insert(END, f"{data.m80 if data.m80 > 0 else '0':>3}", "T" if data.m80 > 0 else "N", " ")
+        text.insert(END, f"{data.m40 if data.m40 > 0 else '0':>3}", "T" if data.m40 > 0 else "N", " ")
+        text.insert(END, f"{data.m20 if data.m20 > 0 else '0':>3}", "T" if data.m20 > 0 else "N", " ")
+        text.insert(END, f"{data.m15 if data.m15 > 0 else '0':>3}", "T" if data.m15 > 0 else "N", " ")
+        text.insert(END, f"{data.m10 if data.m10 > 0 else '0':>3}", "T" if data.m10 > 0 else "N", " ")
 
-        text_widget.insert(tk.END, f" ({len(self._data_history)})")
-        text_widget.insert(tk.END, "\n")
-
-    def add_to_scrolledtext_old(self, text_widget: scrolledtext.ScrolledText) -> None:
-        current: StationData = self.current()
-        delta: StationData = self.delta
-        if not current or not delta:
-            return
-
-        text_widget.insert(tk.END, f"{self.callsign:<10} ", "N")
-        text_widget.insert(tk.END, f"{current.score:>10,} ", "N")
-        text_widget.insert(tk.END, f"{current.qtotal:>6,} ", "N")
-        text_widget.insert(tk.END, f"{delta.qtotal:<+3d}" if delta.qtotal > 0 else f"{'':3}", "N")
-
-        text_widget.insert(tk.END, f"{delta.q160 if delta.q160 > 0 else '0':>3}", "X" if delta.q160 > 0 else "N")
-        text_widget.insert(tk.END, f" {delta.q80 if delta.q80 > 0 else '0':>3}", "X" if delta.q80 > 0 else "N")
-        text_widget.insert(tk.END, f" {delta.q40 if delta.q40 > 0 else '0':>3}", "X" if delta.q40 > 0 else "N")
-        text_widget.insert(tk.END, f" {delta.q20 if delta.q20 > 0 else '0':>3}", "X" if delta.q20 > 0 else "N")
-        text_widget.insert(tk.END, f" {delta.q15 if delta.q15 > 0 else '0':>3}", "X" if delta.q15 > 0 else "N")
-        text_widget.insert(tk.END, f" {delta.q10 if delta.q10 > 0 else '0':>3}", "X" if delta.q10 > 0 else "N")
-
-        text_widget.insert(tk.END, f" | {current.mtotal:>5,} ", "N")
-        text_widget.insert(tk.END, f"{delta.mtotal:<+3d}" if delta.mtotal > 0 else f"{'':3}", "N")
-
-        text_widget.insert(tk.END, f" {delta.m160 if delta.m160 > 0 else '0':>3}", "X" if delta.m160 > 0 else "N")
-        text_widget.insert(tk.END, f" {delta.m80 if delta.m80 > 0 else '0':>3}", "X" if delta.m80 > 0 else "N")
-        text_widget.insert(tk.END, f" {delta.m40 if delta.m40 > 0 else '0':>3}", "X" if delta.m40 > 0 else "N")
-        text_widget.insert(tk.END, f" {delta.m20 if delta.m20 > 0 else '0':>3}", "X" if delta.m20 > 0 else "N")
-        text_widget.insert(tk.END, f" {delta.m15 if delta.m15 > 0 else '0':>3}", "X" if delta.m15 > 0 else "N")
-        text_widget.insert(tk.END, f" {delta.m10 if delta.m10 > 0 else '0':>3}", "X" if delta.m10 > 0 else "N")
-
-        text_widget.insert(tk.END, f" ({len(self._data_history)})")
-        text_widget.insert(tk.END, "\n")
+        text.insert(END, f" ({len(self._data_history)})")
+        text.insert(END, "\n")
