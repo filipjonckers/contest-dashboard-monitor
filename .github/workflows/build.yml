@@ -63,11 +63,10 @@ jobs:
       - name: Upload Artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: ${{ runner.os }} Build
+          name: ContestScoreboardMonitor-${{ runner.os }}
           path: |
             build/*.exe
             build/*.bin
             build/*.app/**/*
-            build/*.dist/**/*
-            build/*/**/*
+            build/contest_scoreboard_monitor.dist/**/*
           include-hidden-files: true
