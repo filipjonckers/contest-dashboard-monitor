@@ -44,6 +44,8 @@ jobs:
           nuitka-version: main
           script-name: src/contest_scoreboard_monitor
           enable-plugins: tk-inter
+          disable-console: false
+          output-filename: contest_scoreboard_monitor.exe
           output-dir: contest_scoreboard_monitor
           windows-icon-from-ico: icon.png
           mode: standalone
@@ -55,9 +57,8 @@ jobs:
           nuitka-version: main
           script-name: src/contest_scoreboard_monitor
           enable-plugins: tk-inter
-          macos-create-app-bundle: true
-          macos-app: ContestScoreboardMonitor.app
-          macos-bundle-identifier: com.on4ff.contestdashboardmonitor
+          disable-console: false
+          macos-app-name: ContestScoreboardMonitor.app
           macos-app-icon: icon.png
           mode: standalone
 
