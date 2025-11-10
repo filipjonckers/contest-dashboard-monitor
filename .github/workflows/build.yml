@@ -26,9 +26,12 @@ jobs:
           cache-dependency-path: |
             **/requirements*.txt
 
-      - name: Install Dependencies
+      - name: Install dependencies using uv
         run: |
-          pip install -r pyproject.toml
+          python -m ensurepip
+          python -m uv install nuitka ordered-set zstandard
+          python -m uv install -e .
+
 
       - name: Build Executable with Nuitka
         uses: Nuitka/Nuitka-Action@main
