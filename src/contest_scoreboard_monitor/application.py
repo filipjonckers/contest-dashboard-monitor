@@ -8,19 +8,18 @@ from typing import Dict, List, Optional, Any
 import aiohttp
 import customtkinter as ctk
 
-from category import Category
-from contest import Contest
-from find_font import find_font
-from inpersonate import inpersonate_browser_headers
-from log import setup_logging
-from stations_list import StationsList
+from src.contest_scoreboard_monitor.category import Category
+from src.contest_scoreboard_monitor.contest import Contest
+from src.contest_scoreboard_monitor.find_font import find_font
+from src.contest_scoreboard_monitor.inpersonate import inpersonate_browser_headers
+from src.contest_scoreboard_monitor.stations_list import StationsList
 
 
 class Application:
     def __init__(self, root):
         self.zone = 14  # Default WAZ zone filter
         self.update_interval = 60  # seconds
-        self.HEADER_TEXT = f" {'station':<10} {'score':>10} {'QSOs':>6}      160  80  40  20  15  10 | {'multi':>5}      160  80  40  20  15  10\n"
+        self.HEADER_TEXT = f" {'station':<10} {'score':>10} {'QSOs':>6}     160  80  40  20  15  10  | {'multi':>5}      160  80  40  20  15  10\n"
         self.entry_type = ctk.StringVar(value="OVERALL")
         self.contest_var = ctk.StringVar(value="")
         self.stations_var = ctk.StringVar(value="10")
@@ -408,20 +407,3 @@ class Application:
             self.current_monitor_task.cancel()
         self.loop.call_soon_threadsafe(self.loop.stop)
         self.root.destroy()
-
-
-def main():
-    setup_logging(logging.DEBUG)
-
-    root = ctk.CTk()
-    root.focus_force()
-    app = Application(root)
-
-    # Handle window closing
-    root.protocol("WM_DELETE_WINDOW", app.on_closing)
-
-    root.mainloop()
-
-
-if __name__ == "__main__":
-    main()

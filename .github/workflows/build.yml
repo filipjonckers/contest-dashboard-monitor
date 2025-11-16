@@ -11,8 +11,7 @@ jobs:
   build:
     strategy:
       matrix:
-        # os: [macos-latest, ubuntu-latest, windows-latest]
-        os: [windows-latest]
+        os: [windows-latest, macos-latest]
     runs-on: ${{ matrix.os }}
 
     steps:
@@ -35,26 +34,39 @@ jobs:
       - name: Install dependencies using uv
         run: |
           python -m ensurepip
-          python -m uv pip install nuitka ordered-set zstandard
+          python -m uv pip install nuitka ordered-set zstandard imageio
           python -m uv pip install -e .
 
-
-      - name: Build Executable with Nuitka
+      - name: Build Executable with Nuitka windows
         uses: Nuitka/Nuitka-Action@main
+        if: "${{ runner.os == 'windows' }}"
         with:
           nuitka-version: main
-          script-name: main.py
-          follow-imports: True
+          script-name: src/contest_scoreboard_monitor
           enable-plugins: tk-inter
+          disable-console: true
+          windows-icon-from-ico: icon.png
+          mode: standalone
+
+      - name: Build Executable with Nuitka MacOS
+        uses: Nuitka/Nuitka-Action@main
+        if: "${{ runner.os == 'macos' }}"
+        with:
+          nuitka-version: main
+          script-name: src/contest_scoreboard_monitor
+          enable-plugins: tk-inter
+          disable-console: true
+          macos-app-name: ContestScoreboardMonitor.app
+          macos-app-icon: icon.png
           mode: standalone
 
       - name: Upload Artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: ${{ runner.os }} Build
+          name: ContestScoreboardMonitor-${{ runner.os }}
           path: |
             build/*.exe
             build/*.bin
             build/*.app/**/*
-            build/*.dist/**/*
+            build/contest_scoreboard_monitor.dist/**/*
           include-hidden-files: true

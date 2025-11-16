@@ -16,3 +16,4 @@ venv/
 
 # UV
 uv.lock
+.DS_Store

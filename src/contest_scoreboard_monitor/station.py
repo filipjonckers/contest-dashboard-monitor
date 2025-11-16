@@ -1,7 +1,7 @@
 from tkinter import scrolledtext, END
 from typing import List, Optional
 
-from station_data import StationData
+from src.contest_scoreboard_monitor.station_data import StationData
 
 
 class Station:

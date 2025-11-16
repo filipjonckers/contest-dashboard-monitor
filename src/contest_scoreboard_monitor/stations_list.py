@@ -1,6 +1,6 @@
 import logging
 
-from station import Station
+from src.contest_scoreboard_monitor.station import Station
 
 
 class StationsList:
