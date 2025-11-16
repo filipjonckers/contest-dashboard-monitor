@@ -44,18 +44,18 @@ jobs:
           nuitka-version: main
           script-name: src/contest_scoreboard_monitor
           enable-plugins: tk-inter
-          disable-console: false
+          disable-console: true
           windows-icon-from-ico: icon.png
           mode: standalone
 
-      - name: Build Executable with Nuitka macos
+      - name: Build Executable with Nuitka MacOS
         uses: Nuitka/Nuitka-Action@main
         if: "${{ runner.os == 'macos' }}"
         with:
           nuitka-version: main
           script-name: src/contest_scoreboard_monitor
           enable-plugins: tk-inter
-          disable-console: false
+          disable-console: true
           macos-app-name: ContestScoreboardMonitor.app
           macos-app-icon: icon.png
           mode: standalone

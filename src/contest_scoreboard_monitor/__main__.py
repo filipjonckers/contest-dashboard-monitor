@@ -7,7 +7,7 @@ from src.contest_scoreboard_monitor.log import setup_logging
 
 
 def main():
-    setup_logging(logging.DEBUG)
+    setup_logging(logging.INFO)
 
     root = ctk.CTk()
     root.focus_force()

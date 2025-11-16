@@ -19,7 +19,7 @@ class Application:
     def __init__(self, root):
         self.zone = 14  # Default WAZ zone filter
         self.update_interval = 60  # seconds
-        self.HEADER_TEXT = f" {'station':<10} {'score':>10} {'QSOs':>6}      160  80  40  20  15  10 | {'multi':>5}      160  80  40  20  15  10\n"
+        self.HEADER_TEXT = f" {'station':<10} {'score':>10} {'QSOs':>6}     160  80  40  20  15  10  | {'multi':>5}      160  80  40  20  15  10\n"
         self.entry_type = ctk.StringVar(value="OVERALL")
         self.contest_var = ctk.StringVar(value="")
         self.stations_var = ctk.StringVar(value="10")
