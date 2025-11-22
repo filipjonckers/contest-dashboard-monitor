@@ -53,6 +53,7 @@ class StationData:
     soft: str = ''
     wac: str = ''
     waz: int = 0
+    rate: int = 0
 
     def __init__(self, dict_data: dict = None):
         try:

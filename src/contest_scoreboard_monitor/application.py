@@ -19,7 +19,7 @@ class Application:
     def __init__(self, root):
         self.zone = 14  # Default WAZ zone filter
         self.update_interval = 60  # seconds
-        self.HEADER_TEXT = f" {'station':<10} {'score':>10} {'QSOs':>6}     160  80  40  20  15  10  | {'multi':>5}      160  80  40  20  15  10\n"
+        self.HEADER_TEXT = f" {'station':<10} {'score':>10} {'QSOs':>6}     rate  160  80  40  20  15  10  | {'multi':>5}      160  80  40  20  15  10\n"
         self.entry_type = ctk.StringVar(value="OVERALL")
         self.contest_var = ctk.StringVar(value="")
         self.stations_var = ctk.StringVar(value="10")
@@ -36,7 +36,7 @@ class Application:
 
         self.root = root
         self.root.title("ON4FF Contest Scoreboard Monitor")
-        self.root.geometry("1100x700")
+        self.root.geometry("1120x700")
 
         ctk.set_appearance_mode("Light")
         ctk.set_default_color_theme("blue")
@@ -341,7 +341,7 @@ class Application:
             self.stations.update_from_json_item(item)
             # do we have enough stations to monitor?
             counter += 1
-            if counter >= int(self.stations_var.get() or "10"):
+            if counter >= int(self.stations_var.get() or "99999"):
                 break
 
         self.root.after(0, self.update_stations_display)

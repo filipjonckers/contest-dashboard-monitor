@@ -102,6 +102,9 @@ class Station:
             self.range_total.m40 += delta.m40
             self.range_total.m80 += delta.m80
             self.range_total.m160 += delta.m160
+        # calculate rate per hour
+        if len(self._delta_history) > 0:
+            self.range_total.rate = int(self.range_total.qtotal / len(self._delta_history) * 60)
 
     def add_to_scrolledtext(self, text: scrolledtext.ScrolledText) -> None:
         current: StationData = self.current()
@@ -113,6 +116,7 @@ class Station:
         text.insert(END, f"{current.score:>10,} ")
         text.insert(END, f"{current.qtotal:>6,} ")
         text.insert(END, f"{data.qtotal:<+4d} " if data.qtotal > 0 else f"{'':4} ")
+        text.insert(END, f"{data.rate:>4d}  " if data.rate > 0 else f"{'':4}  ")
 
         text.insert(END, f"{data.q160 if data.q160 > 0 else '0':>3}", "T" if data.q160 > 0 else "N", " ")
         text.insert(END, f"{data.q80 if data.q80 > 0 else '0':>3}", "T" if data.q80 > 0 else "N", " ")
