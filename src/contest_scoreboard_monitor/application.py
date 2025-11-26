@@ -13,6 +13,7 @@ from src.contest_scoreboard_monitor.contest import Contest
 from src.contest_scoreboard_monitor.find_font import find_font
 from src.contest_scoreboard_monitor.inpersonate import inpersonate_browser_headers
 from src.contest_scoreboard_monitor.stations_list import StationsList
+from src.contest_scoreboard_monitor.userconfig import get_config_value, set_config_value
 
 
 class Application:
@@ -22,9 +23,9 @@ class Application:
         self.HEADER_TEXT = f" {'station':<10} {'score':>10} {'QSOs':>6}     rate  160  80  40  20  15  10  | {'multi':>5}      160  80  40  20  15  10\n"
         self.entry_type = ctk.StringVar(value="OVERALL")
         self.contest_var = ctk.StringVar(value="")
-        self.stations_var = ctk.StringVar(value="10")
-        self.zone_var = ctk.StringVar(value="14")
-        self.include_var = ctk.StringVar(value="")
+        self.stations_var = ctk.StringVar(value=get_config_value("Settings", "stations", "10"))
+        self.zone_var = ctk.StringVar(value=get_config_value("Settings", "zone", "14"))
+        self.include_var = ctk.StringVar(value=get_config_value("Settings", "include", ""))
         self.status_var = ctk.StringVar(value="Ready to start monitoring")
 
         self.include_callsigns: List[str] = []
@@ -183,7 +184,7 @@ class Application:
             self.status_var.set("Error: Please select a contest first")
             return
 
-        logging.debug("Starting monitoring contest ID %d top %s stations", contest_id, self.stations_var.get() or "10")
+        logging.debug("Starting monitoring contest ID %d top %s stations", contest_id, self.stations_var.get())
         self.is_monitoring = True
         self.start_button.configure(text="STOP", fg_color="#D32F2F", hover_color="#B71C1C")
         self.enable_widgets(False)
@@ -399,9 +400,15 @@ class Application:
         # Start loading contests
         asyncio.run_coroutine_threadsafe(self.load_contests(), self.loop)
 
+    def save_config(self):
+        set_config_value("Settings", "stations", self.stations_var.get())
+        set_config_value("Settings", "zone", self.zone_var.get())
+        set_config_value("Settings", "include", self.include_var.get())
+
     def on_closing(self):
         """Cleanup when closing the application"""
         logging.debug("Closing application")
+        self.save_config()
         self.is_monitoring = False
         if self.current_monitor_task:
             self.current_monitor_task.cancel()
