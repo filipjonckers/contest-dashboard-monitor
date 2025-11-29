@@ -1,6 +1,7 @@
 import logging
 from dataclasses import dataclass
 from datetime import datetime
+from typing import Any, Dict
 
 
 @dataclass
@@ -56,7 +57,7 @@ class StationData:
     waz: int = 0
     rate: int = 0
 
-    def __init__(self, dict_data: dict = None):
+    def __init__(self, dict_data: Dict[str, Any]):
         try:
             if dict_data:
                 for key, value in dict_data.items():
@@ -71,4 +72,4 @@ class StationData:
     def __str__(self):
         # print values of all attributes
         attrs = vars(self)
-        return ' '.join(f"{key:>6}={value:<8}" for key, value in attrs.items())
+        return f"{self.date}:" + ' '.join(f"{key:>6}={value:<7}" for key, value in attrs.items())
