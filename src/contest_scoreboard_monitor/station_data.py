@@ -72,4 +72,4 @@ class StationData:
     def __str__(self):
         # print values of all attributes
         attrs = vars(self)
-        return ' '.join(f"{key:>6}={value:<8}" for key, value in attrs.items())
+        return f"{self.date}:" + ' '.join(f"{key:>6}={value:<7}" for key, value in attrs.items())

@@ -34,7 +34,7 @@ class StationsList:
     def get_stations_sorted_by_score(self) -> list[Station]:
         return sorted(
             self.stations_list.values(),
-            key=lambda s: s.current().score if s.current() else 0,
+            key=lambda s: s.newest().score if s.newest() else 0,
             reverse=True
         )
 
