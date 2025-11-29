@@ -26,5 +26,12 @@ class StationsList:
     def get_stations(self) -> list[Station]:
         return list(self.stations_list.values())
 
+    def get_stations_sorted_by_score(self) -> list[Station]:
+        return sorted(
+            self.stations_list.values(),
+            key=lambda s: s.current().score if s.current() else 0,
+            reverse=True
+        )
+
     def clear(self):
         self.stations_list = {}

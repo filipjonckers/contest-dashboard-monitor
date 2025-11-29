@@ -1,3 +1,4 @@
+from datetime import timedelta
 from tkinter import scrolledtext, END
 from typing import List, Optional
 
@@ -21,13 +22,22 @@ class Station:
 
     def update_from_json_item(self, json_item: dict):
         new_data = StationData(json_item)
+        if new_data and self.current() and new_data.date == self.current().date:
+            # duplicate data, ignore
+            return
         self._data_history.append(new_data)
-
-        while len(self._data_history) > self._max_history:
-            self._data_history.pop(0)
-
+        self.drop_old_data()
         self.update_delta()
         self.update_range_total()
+        if self.callsign == "EF8R":
+            print('==============================================')
+            for data in self._data_history:
+                print(f"{data}")
+            print('----------------------------------------------')
+            for data in self._delta_history:
+                print(f"{data}")
+            print('==============================================')
+
 
     def current(self) -> Optional[StationData]:
         if not self._data_history or len(self._data_history) < 1:
@@ -39,13 +49,28 @@ class Station:
             return None
         return self._data_history[-2]
 
+    def oldest(self) -> Optional[StationData]:
+        if not self._data_history or len(self._data_history) < 1:
+            return None
+        return self._data_history[0]
+
     def data_history(self) -> List[StationData]:
         """Get all StationData instances as a list (oldest to newest)"""
         return self._data_history.copy()
 
+    def drop_old_data(self) -> None:
+        # Drop data older than max history size
+        while len(self._data_history) > self._max_history:
+            self._data_history.pop(0)
+        # Drop data older than max history time
+        threshold = self.current().date - timedelta(minutes=self._max_history)
+        while self._data_history and self._data_history[0].date < threshold:
+            self._data_history.pop(0)
+
     def update_delta(self) -> None:
         current: StationData = self.current()
         previous: StationData = self.previous()
+        # we need at least two data points to calculate a delta
         if not current or not previous:
             return
 
@@ -81,6 +106,7 @@ class Station:
         self.range_total: StationData = StationData()
 
         start_index = max(0, len(self._delta_history) - self.range)
+        # set start_index to the item in self._delta_history where date is within 10 minutes
         end_index = len(self._delta_history)
         deltas_to_sum = self._delta_history[start_index:end_index]
         for delta in deltas_to_sum:
@@ -104,6 +130,8 @@ class Station:
             self.range_total.m160 += delta.m160
         # calculate rate per hour
         if len(self._delta_history) > 0:
+            if not self.oldest():
+                return
             self.range_total.rate = int(self.range_total.qtotal / len(self._delta_history) * 60)
 
     def add_to_scrolledtext(self, text: scrolledtext.ScrolledText) -> None:
@@ -112,7 +140,7 @@ class Station:
         if not current or not data:
             return
 
-        text.insert(END, f" {self.callsign:<10}", "mark" if self.mark else "N", "")
+        text.insert(END, f" {self.callsign:<10} ", "mark" if self.mark else "N", "")
         text.insert(END, f"{current.score:>10,} ")
         text.insert(END, f"{current.qtotal:>6,} ")
         text.insert(END, f"{data.qtotal:<+4d} " if data.qtotal > 0 else f"{'':4} ")
@@ -136,4 +164,6 @@ class Station:
         text.insert(END, f"{data.m10 if data.m10 > 0 else '0':>3}", "T" if data.m10 > 0 else "N", " ")
 
         text.insert(END, f" ({len(self._data_history)})")
+        text.insert(END,
+                    f" ({'' if not self.oldest() else self.oldest().timestamp} - {current.timestamp} {'' if not self.oldest() else current.date - self.oldest().date})")
         text.insert(END, "\n")

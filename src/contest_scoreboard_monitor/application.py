@@ -20,7 +20,7 @@ class Application:
     def __init__(self, root):
         self.zone = 14  # Default WAZ zone filter
         self.update_interval = 60  # seconds
-        self.HEADER_TEXT = f" {'station':<10} {'score':>10} {'QSOs':>6}     rate  160  80  40  20  15  10  | {'multi':>5}      160  80  40  20  15  10\n"
+        self.HEADER_TEXT = f" {'station':<10} {'score':>10} {'QSOs':>6}      rate  160  80  40  20  15  10  | {'multi':>5}      160  80  40  20  15  10  age\n"
         self.entry_type = ctk.StringVar(value="OVERALL")
         self.contest_var = ctk.StringVar(value="")
         self.stations_var = ctk.StringVar(value=get_config_value("Settings", "stations", "10"))
@@ -37,7 +37,7 @@ class Application:
 
         self.root = root
         self.root.title("ON4FF Contest Scoreboard Monitor")
-        self.root.geometry("1120x700")
+        self.root.geometry("1500x700")
 
         ctk.set_appearance_mode("Light")
         ctk.set_default_color_theme("blue")
@@ -337,6 +337,7 @@ class Application:
 
             # do we need to filter out this item?
             if not self.part_of_category(item, category, zone):
+                # TODO: delete if needed
                 continue
             # add to monitoring stations list
             self.stations.update_from_json_item(item)
@@ -381,7 +382,8 @@ class Application:
     def update_stations_display(self):
         self.results_text.delete("1.0", "end")
         self.results_text.insert("1.0", self.HEADER_TEXT, "header")
-        for station in self.stations.get_stations():
+        # display each station sorted by score
+        for station in self.stations.get_stations_sorted_by_score():
             station.add_to_scrolledtext(self.results_text)
 
     def update_status(self, message: str):

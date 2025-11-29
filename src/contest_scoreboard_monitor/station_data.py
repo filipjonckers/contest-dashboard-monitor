@@ -16,6 +16,7 @@ class StationData:
     cttime: int = 0
     cttrans: int = 0
     date: datetime = None
+    timestamp: str = ''
     dxcc: str = ''
     elap: int = 0
     hrs: int = 0
@@ -59,7 +60,11 @@ class StationData:
         try:
             if dict_data:
                 for key, value in dict_data.items():
+                    # correctly handle datetime fields
+                    if key == 'date' and isinstance(value, str):
+                        value = datetime.strptime(value, '%Y-%m-%d %H:%M:%S')
                     setattr(self, key, value)
+            self.timestamp = '' if not self.date else self.date.strftime('%H:%M:%S')
         except Exception as e:
             logging.error("Error extracting Station data: %s", e)
 
