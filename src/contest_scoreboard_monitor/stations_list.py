@@ -1,4 +1,5 @@
 import logging
+from typing import Any, Dict
 
 from src.contest_scoreboard_monitor.station import Station
 
@@ -11,7 +12,7 @@ class StationsList:
         return self.stations_list.get(callsign)
 
     # update from a single JSON data object dict
-    def update_from_json_item(self, json_item: dict, mark: bool = False):
+    def update_from_json_item(self, json_item: Dict[str, Any], mark: bool = False):
         try:
             callsign = json_item.get('sign', 'ERROR')
             station: Station = self.get(callsign)
@@ -22,6 +23,10 @@ class StationsList:
             station.mark = mark
         except Exception as e:
             logging.error("Error updating station from JSON item: %s", e)
+
+    def remove_station_if_present(self, callsign: str):
+        if callsign in self.stations_list:
+            self.stations_list.pop(callsign)
 
     def get_stations(self) -> list[Station]:
         return list(self.stations_list.values())

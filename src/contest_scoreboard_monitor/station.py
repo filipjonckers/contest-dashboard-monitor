@@ -1,6 +1,6 @@
 from datetime import timedelta
 from tkinter import scrolledtext, END
-from typing import List, Optional
+from typing import List, Optional, Dict, Any
 
 from src.contest_scoreboard_monitor.station_data import StationData
 
@@ -20,7 +20,7 @@ class Station:
         current: StationData = self.current()
         return f"{self.callsign:<10} {current.score:>10,} - {current.qtotal:>6,} QSOs {current.ptotal:>7,} pts {current.mtotal:>5,} multi --> history: {len(self._data_history)}"
 
-    def update_from_json_item(self, json_item: dict):
+    def update_from_json_item(self, json_item: Dict[str, Any]):
         new_data = StationData(json_item)
         if new_data and self.current() and new_data.date == self.current().date:
             # duplicate data, ignore

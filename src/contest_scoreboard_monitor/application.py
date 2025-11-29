@@ -204,7 +204,7 @@ class Application:
         if self.current_monitor_task:
             self.current_monitor_task.cancel()
 
-    async def fetch_json(self, url: str) -> Optional[Dict[str, Any]]:
+    async def fetch_json(self, url: str) -> Optional[list[Dict[str, Any]]]:
         logging.debug("Fetching JSON data from URL: %s", url)
         try:
             connector = aiohttp.TCPConnector(ssl=False)
@@ -322,7 +322,7 @@ class Application:
                 logging.error("async cancelled error")
                 break
 
-    def process_contest_data(self, data: Dict[str, Any]):
+    def process_contest_data(self, data: list[Dict[str, Any]]):
         category = self.get_selected_category()
         logging.debug("Processing: %s id=%d stations:%d", category.categoryname, category.catid, len(data))
 
@@ -330,17 +330,20 @@ class Application:
         counter: int = 0
 
         for item in data:
+            callsign = item.get('sign', '').upper()
             # check is sign is in include list
-            if self.include_callsigns and item.get('sign', '').upper() in self.include_callsigns:
+            if self.include_callsigns and callsign in self.include_callsigns:
                 self.stations.update_from_json_item(item, mark=True)
                 continue
 
             # do we need to filter out this item?
             if not self.part_of_category(item, category, zone):
-                # TODO: delete if needed
+                self.stations.remove_station_if_present(callsign)
                 continue
+
             # add to monitoring stations list
             self.stations.update_from_json_item(item)
+
             # do we have enough stations to monitor?
             counter += 1
             if counter >= int(self.stations_var.get() or "99999"):
