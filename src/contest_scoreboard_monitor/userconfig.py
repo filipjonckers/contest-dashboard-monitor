@@ -11,7 +11,7 @@ def load_user_config() -> None:
     """Load configuration from the ini file."""
     if os.path.exists(CONFIG_FILE):
         config.read(CONFIG_FILE)
-        logging.info(f'Configuration loaded from {CONFIG_FILE}')
+        logging.debug(f'Configuration loaded from {CONFIG_FILE}')
     else:
         logging.warning(f'Configuration file {CONFIG_FILE} not found. Using defaults.')
 
@@ -32,4 +32,4 @@ def set_config_value(section: str, option: str, value: Any) -> None:
     config.set(section, option, str(value))
     with open(CONFIG_FILE, 'w') as configfile:
         config.write(configfile)
-    logging.info(f'Config option [{section}] {option} set to {value} and saved to {CONFIG_FILE}')
+    logging.debug(f'Config option [{section}] {option} set to {value} and saved to {CONFIG_FILE}')
