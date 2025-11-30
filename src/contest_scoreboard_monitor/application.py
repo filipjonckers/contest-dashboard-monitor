@@ -18,17 +18,17 @@ from src.contest_scoreboard_monitor.userconfig import get_config_value, set_conf
 
 class Application:
     def __init__(self, root):
-        self.zone = 14  # Default WAZ zone filter
         self.update_interval = 60  # seconds
-        self.HEADER_TEXT = f" {'station':<10} {'score':>10} {'QSOs':>6}      rate  160  80  40  20  15  10  | {'multi':>5}      160  80  40  20  15  10  age\n"
+        self.HEADER_TEXT = f" {'station':<10} {'score':>10} {'QSOs':>6}      rate  160  80  40  20  15  10  | {'multi':>5}      160  80  40  20  15  10  age      last\n"
         self.entry_type = ctk.StringVar(value="OVERALL")
         self.contest_var = ctk.StringVar(value="")
         self.stations_var = ctk.StringVar(value=get_config_value("Settings", "stations", "10"))
-        self.zone_var = ctk.StringVar(value=get_config_value("Settings", "zone", "14"))
+        self.zone_var = ctk.StringVar(value=get_config_value("Settings", "zone", "14 15"))
         self.include_var = ctk.StringVar(value=get_config_value("Settings", "include", ""))
         self.status_var = ctk.StringVar(value="Ready to start monitoring")
 
         self.include_callsigns: List[str] = []
+        self.include_zones: List[int] = []
         self.stations = StationsList()
         self.contests: List[Contest] = []
         self.categories: List[Category] = []
@@ -78,10 +78,10 @@ class Application:
         stations_entry.pack(side="left", padx=5)
         stations_entry.configure(validatecommand=(self.root.register(Application.validate_number), '%P'))
 
-        ctk.CTkLabel(frame1, text="Zone:").pack(side="left", padx=(5, 0))
-        zone_entry = ctk.CTkEntry(frame1, textvariable=self.zone_var, width=30, validate="key")
+        ctk.CTkLabel(frame1, text="Zone(s):").pack(side="left", padx=(5, 0))
+        zone_entry = ctk.CTkEntry(frame1, textvariable=self.zone_var, width=120, validate="key")
         zone_entry.pack(side="left", padx=5)
-        zone_entry.configure(validatecommand=(self.root.register(Application.validate_number), '%P'))
+        zone_entry.configure(validatecommand=(self.root.register(Application.validate_zones), '%P'))
 
         self.start_button = ctk.CTkButton(self.line1_frame, text="START", command=self.toggle_monitoring,
                                           fg_color="#2E7D32", hover_color="#1B5E20")
@@ -133,6 +133,13 @@ class Application:
     @staticmethod
     def validate_number(value):
         if value.isdigit() or value == "":
+            return True
+        return False
+
+    @staticmethod
+    def validate_zones(value):
+        # only space or digits allowed
+        if all(c.isdigit() or c.isspace() for c in value):
             return True
         return False
 
@@ -304,7 +311,9 @@ class Application:
         url = f"https://contest.run/api/displayscore/{contest_id}"
         logging.debug("Starting monitoring for contest ID %d at URL: %s", contest_id, url)
 
-        # self.include_var to list of callsigns
+        self.include_zones = [int(z.strip()) for z in self.zone_var.get().split(" ") if z.strip().isdigit()]
+        logging.debug("Include zones: %s", self.include_zones)
+
         self.include_callsigns = [cs.strip().upper() for cs in self.include_var.get().split(" ") if cs.strip()]
         logging.debug("Include callsigns: %s", self.include_callsigns)
 
@@ -319,14 +328,13 @@ class Application:
                 await asyncio.sleep(self.update_interval)
 
             except asyncio.CancelledError:
-                logging.error("async cancelled error")
+                logging.debug("async cancelled error caught, stopping monitoring loop")
                 break
 
     def process_contest_data(self, data: list[Dict[str, Any]]):
         category = self.get_selected_category()
         logging.debug("Processing: %s id=%d stations:%d", category.categoryname, category.catid, len(data))
 
-        zone: int = int(self.zone_var.get() or "0")
         counter: int = 0
 
         for item in data:
@@ -337,7 +345,7 @@ class Application:
                 continue
 
             # do we need to filter out this item?
-            if not self.part_of_category(item, category, zone):
+            if not self.part_of_category(item, category, self.include_zones):
                 self.stations.remove_station_if_present(callsign)
                 continue
 
@@ -352,12 +360,12 @@ class Application:
         self.root.after(0, self.update_stations_display)
 
     @staticmethod
-    def part_of_category(item: Dict[str, Any], category: Category, zone: int) -> bool:
+    def part_of_category(item: Dict[str, Any], category: Category, zones: list[int]) -> bool:
         if not category or not item:
             return False
 
         try:
-            if zone > 0 and zone != item.get('waz', 0):
+            if len(zones) > 0 and item.get('waz', 0) not in zones:
                 return False
             if 0 <= category.ctoper != item.get('ctoper', -1):
                 return False

@@ -1,4 +1,5 @@
-from datetime import timedelta, datetime
+import logging
+from datetime import timedelta, datetime, timezone
 from tkinter import scrolledtext, END
 from typing import List, Optional, Dict, Any
 
@@ -15,12 +16,15 @@ class Station:
         self.range: int = 10
 
     def update_from_json_item(self, json_item: Dict[str, Any]):
-        new_data = StationData(json_item)
-        if new_data and self.newest() and new_data.date == self.newest().date:
-            return  # ignore duplicate data
-        self._data_history.append(new_data)
-        self.drop_old_data()
-        self.update_delta()
+        try:
+            new_data = StationData(json_item)
+            if new_data and self.newest() and new_data.date == self.newest().date:
+                return  # ignore duplicate data
+            self._data_history.append(new_data)
+            self.drop_old_data()
+            self.update_delta()
+        except Exception as e:
+            logging.error("Error updating station from JSON item: %s", e)
 
     def newest(self) -> Optional[StationData]:
         if not self._data_history or len(self._data_history) < 1:
@@ -69,8 +73,11 @@ class Station:
         self.delta.m160 = last.m160 - first.m160
 
         # delta.date is difference between last.date and first.date
-        self.delta.date = datetime.min + (last.date - first.date)
-        self.delta.timestamp = self.delta.date.strftime('%H:%M:%S')
+        # old version # self.delta.date = datetime.min + (last.date - first.date)
+        if first.date > datetime.now(timezone.utc):
+            self.delta.date = datetime.min  # strange but happens: future date, set delta to zero
+        else:
+            self.delta.date = datetime.min + (datetime.now(timezone.utc) - first.date)
 
         # calculate rate per hour
         elapsed_minutes = (last.date - first.date).total_seconds() / 60
@@ -106,7 +113,7 @@ class Station:
         text.insert(END, f"{data.m15 if data.m15 > 0 else '0':>3}", "T" if data.m15 > 0 else "N", " ")
         text.insert(END, f"{data.m10 if data.m10 > 0 else '0':>3}", "T" if data.m10 > 0 else "N", " ")
 
-        text.insert(END, f" {current.date.strftime('%H:%M:%S')} ")
-        text.insert(END, f" {data.date.strftime('%M:%S')}")
+        text.insert(END, f" {data.date.strftime('%H:%M:%S')}")
+        text.insert(END, f" {current.date.strftime('%H:%M')} ")
         text.insert(END, f" ({len(self._data_history)})")
         text.insert(END, "\n")
